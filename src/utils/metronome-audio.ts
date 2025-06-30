@@ -40,8 +40,8 @@ export class MetronomeAudioEngine {
 
     // 加載音效
     this.loadSounds(
-      config?.strongBeatSound || '/sounds/strong-beat.mp3',
-      config?.weakBeatSound || '/sounds/weak-beat.mp3',
+      config?.strongBeatSound || '/metronome/sounds/strong-beat.mp3',
+      config?.weakBeatSound || '/metronome/sounds/weak-beat.mp3',
     );
   }
 
