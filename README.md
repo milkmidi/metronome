@@ -2,6 +2,8 @@
 
 這是一個使用 React、TypeScript 和 Tailwind CSS 構建的網頁節拍器應用程序。它提供了直觀的界面，讓用戶可以調整速度和拍子，並提供視覺和聽覺反饋。
 
+LiveDemo: https://milkmidi.github.io/metronome/index.html
+
 ![節拍器截圖](./docs/screenshot.png)
 
 ## 功能特點
@@ -55,7 +57,7 @@ npm install
 npm run dev
 ```
 
-然後在瀏覽器中打開 [http://localhost:5173](http://localhost:5173)。
+然後在瀏覽器中打開 [http://localhost:3000](http://localhost:3000)。
 
 ## 測試
 
