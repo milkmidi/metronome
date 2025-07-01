@@ -50,6 +50,15 @@ function Metronome(): React.ReactElement {
     }
   }, [state.isPlaying, state.bpm, state.timeSignature]);
 
+  // 更新瀏覽器標題以反映速度和拍子
+  useEffect(() => {
+    if (state.isPlaying) {
+      document.title = `節拍器 - 速度: ${state.bpm} BPM, 拍子: ${state.timeSignature}`;
+    } else {
+      document.title = '節拍器';
+    }
+  }, [state.isPlaying, state.bpm, state.timeSignature]);
+
   // 處理速度變化
   const handleSpeedChange = (bpm: number): void => {
     setState((prev) => ({ ...prev, bpm }));
