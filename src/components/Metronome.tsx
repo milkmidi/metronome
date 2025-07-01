@@ -48,7 +48,21 @@ function Metronome(): React.ReactElement {
     } else {
       audioEngineRef.current.stop();
     }
-  }, [state.isPlaying, state.bpm, state.timeSignature]);
+  }, [state.isPlaying]);
+
+  // 處理 BPM 變化（播放時實時更新）
+  useEffect(() => {
+    if (!audioEngineRef.current || !state.isPlaying) return;
+    
+    audioEngineRef.current.setBpm(state.bpm);
+  }, [state.bpm, state.isPlaying]);
+
+  // 處理拍子變化（播放時實時更新）
+  useEffect(() => {
+    if (!audioEngineRef.current || !state.isPlaying) return;
+    
+    audioEngineRef.current.setTimeSignature(state.timeSignature);
+  }, [state.timeSignature, state.isPlaying]);
 
   // 處理速度變化
   const handleSpeedChange = (bpm: number): void => {
