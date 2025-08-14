@@ -1,5 +1,10 @@
 import React, { useState, useCallback, useRef } from 'react';
 
+// Constants for better maintainability
+const DEFAULT_SENSITIVITY = 2; // Higher value = more sensitive
+const MAX_ROTATION_DEGREES = 270; // Maximum knob rotation
+const ROTATION_OFFSET = 135; // Offset to center the starting position
+
 interface KnobProps {
   value: number;
   min: number;
@@ -7,26 +12,39 @@ interface KnobProps {
   onChange: (value: number) => void;
   size?: number;
   className?: string;
+  sensitivity?: number;
+  label?: string;
 }
 
-function Knob({ value, min, max, onChange, size = 80, className = '' }: KnobProps): React.ReactElement {
+function Knob({ 
+  value, 
+  min, 
+  max, 
+  onChange, 
+  size = 80, 
+  className = '', 
+  sensitivity = DEFAULT_SENSITIVITY,
+  label = 'Knob control'
+}: KnobProps): React.ReactElement {
   const [isDragging, setIsDragging] = useState(false);
   const lastMouseY = useRef(0);
-  const sensitivity = 2; // Higher value = more sensitive
+  const currentAngleRef = useRef(0); // Cache current angle for performance
   
-  // Convert value to rotation angle (0 to 270 degrees)
+  // Convert value to rotation angle (0 to MAX_ROTATION_DEGREES)
   const valueToAngle = useCallback((val: number): number => {
     const normalizedValue = (val - min) / (max - min);
-    return normalizedValue * 270; // 270 degrees max rotation
+    return normalizedValue * MAX_ROTATION_DEGREES;
   }, [min, max]);
 
   // Convert rotation angle to value
   const angleToValue = useCallback((angle: number): number => {
-    const normalizedAngle = Math.max(0, Math.min(270, angle)) / 270;
+    const normalizedAngle = Math.max(0, Math.min(MAX_ROTATION_DEGREES, angle)) / MAX_ROTATION_DEGREES;
     return Math.round(min + normalizedAngle * (max - min));
   }, [min, max]);
 
+  // Update cached angle when value changes
   const currentAngle = valueToAngle(value);
+  currentAngleRef.current = currentAngle;
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
@@ -40,18 +58,54 @@ function Knob({ value, min, max, onChange, size = 80, className = '' }: KnobProp
     const deltaY = lastMouseY.current - e.clientY; // Inverted: up = positive
     lastMouseY.current = e.clientY;
 
-    const currentAngle = valueToAngle(value);
-    const newAngle = currentAngle + (deltaY * sensitivity);
+    // Use cached angle for better performance
+    const newAngle = currentAngleRef.current + (deltaY * sensitivity);
     const newValue = angleToValue(newAngle);
 
     if (newValue !== value) {
+      currentAngleRef.current = valueToAngle(newValue); // Update cache
       onChange(newValue);
     }
-  }, [isDragging, value, valueToAngle, angleToValue, onChange, sensitivity]);
+  }, [isDragging, value, angleToValue, onChange, sensitivity]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
   }, []);
+
+  // Handle keyboard interactions for accessibility
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    let newValue = value;
+    
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'ArrowRight':
+        newValue = Math.min(max, value + 1);
+        break;
+      case 'ArrowDown':
+      case 'ArrowLeft':
+        newValue = Math.max(min, value - 1);
+        break;
+      case 'PageUp':
+        newValue = Math.min(max, value + 10);
+        break;
+      case 'PageDown':
+        newValue = Math.max(min, value - 10);
+        break;
+      case 'Home':
+        newValue = min;
+        break;
+      case 'End':
+        newValue = max;
+        break;
+      default:
+        return; // Don't preventDefault for other keys
+    }
+    
+    if (newValue !== value) {
+      e.preventDefault();
+      onChange(newValue);
+    }
+  }, [value, min, max, onChange]);
 
   // Add global mouse event listeners when dragging
   React.useEffect(() => {
@@ -78,9 +132,15 @@ function Knob({ value, min, max, onChange, size = 80, className = '' }: KnobProp
   return (
     <div className={`relative inline-block ${className}`}>
       <div
+        role="slider"
+        aria-valuenow={value}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-label={label}
+        tabIndex={0}
         className={`
           relative rounded-full border-4 border-gray-300 bg-gradient-to-br from-gray-100 to-gray-200
-          shadow-lg cursor-grab active:cursor-grabbing transition-shadow duration-150
+          shadow-lg cursor-grab active:cursor-grabbing transition-shadow duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500
           ${isDragging ? 'shadow-xl' : 'hover:shadow-lg'}
         `}
         style={{
@@ -88,6 +148,7 @@ function Knob({ value, min, max, onChange, size = 80, className = '' }: KnobProp
           height: size,
         }}
         onMouseDown={handleMouseDown}
+        onKeyDown={handleKeyDown}
       >
         {/* Knob indicator */}
         <div
@@ -97,7 +158,7 @@ function Knob({ value, min, max, onChange, size = 80, className = '' }: KnobProp
             left: '50%',
             top: size * 0.1,
             transformOrigin: `50% ${size * 0.4}px`,
-            transform: `translateX(-50%) rotate(${currentAngle - 135}deg)`,
+            transform: `translateX(-50%) rotate(${currentAngle - ROTATION_OFFSET}deg)`,
           }}
         />
         

@@ -20,6 +20,7 @@ function SpeedControl({ bpm, onSpeedChange }: ISpeedControlProps): React.ReactEl
           onChange={onSpeedChange}
           size={100}
           className="mb-4"
+          label="Speed control (BPM)"
         />
       </div>
 
