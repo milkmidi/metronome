@@ -46,11 +46,16 @@ describe('Metronome', () => {
     expect(screen.getByText('停止')).toBeInTheDocument();
   });
 
-  it('應該在調整速度滾動條時更新 BPM', () => {
+  it('應該在調整速度旋鈕時更新 BPM', () => {
     render(<Metronome />);
 
-    const slider = screen.getByRole('slider');
-    fireEvent.change(slider, { target: { value: '140' } });
+    const knob = screen.getByRole('slider');
+
+    // Simulate dragging the knob upward to increase BPM
+    // Default is 120, dragging up 20px should increase to 140
+    fireEvent.mouseDown(knob, { clientY: 100 });
+    fireEvent.mouseMove(document, { clientY: 80 }); // Move up 20px
+    fireEvent.mouseUp(document);
 
     // 檢查 BPM 顯示是否更新
     expect(screen.getByText('140')).toBeInTheDocument();

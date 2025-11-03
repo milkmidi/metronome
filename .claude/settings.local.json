@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(openspec list:*)",
+      "Bash(openspec validate:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
