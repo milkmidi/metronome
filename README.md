@@ -153,3 +153,7 @@ metronome/
 ## 許可證
 
 [ISC](LICENSE)
+
+---
+
+謝謝你, 9527, Claude 讚讚讚
