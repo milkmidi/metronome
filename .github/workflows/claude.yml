@@ -11,6 +11,9 @@ on:
     types: [submitted]
 
 jobs:
+  ############################
+  # MANUAL "@claude …" JOB #
+  ############################
   claude-code-action:
     if: |
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
@@ -23,6 +26,7 @@ jobs:
       pull-requests: read
       issues: read
       id-token: write
+      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,7 +34,17 @@ jobs:
           fetch-depth: 1
 
       - name: Run Claude PR Action
-        uses: anthropics/claude-code-action@beta
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          timeout_minutes: "60"
+          track_progress: true
+          # 使用 claude_args 整合 MCP 和 allowed tools
+          # 通配符支援參考:
+          #   - Bash: 支援萬用字元，如 Bash(git *), Bash(npm *)
+          #   - MCP: 不支援萬用字元
+          #     使用 "mcp__servername" 批准該 server 所有工具
+          #     參考 https://docs.claude.com/en/docs/claude-code/iam#configuring-permissions
+          claude_args: |
+            --mcp-config '{"mcpServers":{"pg-jira-server":{"command":"npx","args":["-y","supergateway","--sse","https://positivegrid-it.app.n8n.cloud/mcp/get-jira-ticket","--header","Authorization: Bearer ${{ secrets.N8N_BEARER_MCP_TOKEN }}"]},"playwright":{"command":"npx","args":["@playwright/mcp@latest","--headless","--viewport-size","1600, 1400"]}}}'
+            --allowedTools "mcp__pg-jira-server__get_ticket,mcp__playwright,Read,Write,Edit,Bash(git:*),Bash(npm:*),Bash(awk:*)"
+            --max-turns 20
